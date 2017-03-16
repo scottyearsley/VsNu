@@ -1,19 +1,164 @@
-﻿@using VsNu
+﻿@using System
+@using System.Collections.Generic
+@using System.Linq
+@using VsNu
+@using NuGet
+
 @{
-
-
-
+    var assemblies = @Model.GetUniqueAssemblyRefNames();
 }
+<!doctype html>
 
-<html>
-
-<body>
-<p>Woohoo</p>
-    <ul>
-        @foreach (string assembly in @Model.GetUniqueAssemblyRefNames())
-        {
-            <li>@assembly</li>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Visual Studio Nuget Analysis Result</title>
+    @*<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.2.1/foundation.min.css">*@
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.8/semantic.min.css">
+    <style>
+        .vertical-text {
+            transform: rotate(270deg);
+            height: 200px;
+            width: 100px;
         }
-    </ul>
+
+        table {
+            border-collapse: collapse;
+            border: 1px solid #000000;
+        }
+
+            table td, th {
+                border: 1px solid #000000;
+                padding: 10px;
+            }
+
+        th {
+            background-color: #eeeeee;
+            height: 301px;
+            width: 200px;
+        }
+
+        td {
+            /* These are technically the same, but use both */
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            -ms-word-break: break-all;
+            /* This is the dangerous one in WebKit, as it breaks things wherever */
+            word-break: break-all;
+            /* Instead use this non-standard one: */
+            word-break: break-word;
+            /* Adds a hyphen where the word breaks, if supported (No Blink) */
+            -ms-hyphens: auto;
+            -moz-hyphens: auto;
+            -webkit-hyphens: auto;
+            hyphens: auto;
+            width: 300px;
+        }
+
+        table th:first-child {
+            border-top-color: #ffffff;
+            border-left-color: #ffffff;
+            width: 100px;
+            background-color: #ffffff;
+        }
+
+        table td:first-child {
+            width: 100px;
+            background-color: #eeeeee;
+        }
+
+        .container {
+            margin: 20px;
+            overflow: auto;
+        }
+
+        .error {
+            background-color: #ffaaaa;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Results</h2>
+
+        @foreach (string assembly in assemblies)
+            {
+            <h3>@assembly</h3>
+            <table>
+                <tr>
+                    <th></th>
+                    @foreach (var project in @Model.GetProjectsForPackage(assembly))
+                    {
+                        <th class="vertical-text">@project.Name</th>
+                    }
+                </tr>
+                <tr>
+                    <td>Version</td>
+                    @foreach (Project project in @Model.GetProjectsForPackage(assembly))
+                    {
+                        var reference = project.References.Single(r => r.ProjectAssemblyRef.Name == assembly);
+                        string error = null;
+                        if (reference.VersionMismatch)
+                        {
+                            error = "error";
+                        }
+                        <td class="@error">@reference.ProjectAssemblyRef.Version</td>
+                    }
+                </tr>
+                <tr>
+                    <td>Assembly Version</td>
+                    @foreach (Project project in @Model.GetProjectsForPackage(assembly))
+                    {
+                        var reference = project.References.Single(r => r.ProjectAssemblyRef.Name == assembly);
+                        string error = null;
+                        if (reference.VersionMismatch)
+                        {
+                            error = "error";
+                        }
+                        <td class="@error">@reference.AssemblyInfo.Version</td>
+                    }
+                </tr>
+                <tr>
+                    <td>Hint Path</td>
+                    @foreach (Project project in @Model.GetProjectsForPackage(assembly))
+                    {
+                        <td>@project.References.Single(r => r.ProjectAssemblyRef.Name == assembly).HintPath</td>
+                    }
+                </tr>
+                <tr>
+                    <td>Assembly Path</td>
+                    @foreach (Project project in @Model.GetProjectsForPackage(assembly))
+                    {
+                        <td>@project.References.Single(r => r.ProjectAssemblyRef.Name == assembly).AssemblyInfo.Path</td>
+                    }
+                </tr>
+                <tr>
+                    <td>Package Config</td>
+                    @foreach (Project project in @Model.GetProjectsForPackage(assembly))
+                    {
+                        var contains = project.Packages.SingleOrDefault(p => p.Contains(assembly));
+
+                        if (contains != null)
+                        {
+                            <td>@contains.GetPackageAssemblyReference(assembly).Name</td>
+                        }
+
+                        @*var packageRef = project.Packages.SingleOrDefault(p => p.GetPackageAssemblyReference(assembly));
+                            if (packageRef != null)
+                            {
+                                <td>@packageRef.GetPackageInfo().Version.ToString()</td>
+                            }
+                            else
+                            {
+                                <td class="error">MISSING</td>
+                            }*@
+                    }
+                </tr>
+            </table>
+        }
+
+    </div>
+
 </body>
 </html>

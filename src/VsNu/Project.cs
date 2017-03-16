@@ -6,25 +6,27 @@ using System.Xml.Linq;
 
 namespace VsNu
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class Project
     {
-        public string Name { get; set; }
+        public string Name { get; private set; }
 
-        public List<ProjectRef> NugetProjectRefs { get; set; } = new List<ProjectRef>();
+        public string ProjectPath { get; private set; }
 
-        public List<Package> Packages { get; set; } = new List<Package>();
+        public List<Reference> References { get; } = new List<Reference>();
 
-        // public bool ReferencesMatch
-        // {
-        //     get { return true; }
-        // }
+        public List<Package> Packages { get; } = new List<Package>();
+
+        //public bool ReferencesMatch
+        //{
+        //    get { return true; }
+        //}
 
         public static Project Create(string path)
         {
-            var project = new Project();
+            var project = new Project
+            {
+                ProjectPath = path
+            };
 
             LoadProjectFile(path, project);
 
@@ -37,24 +39,24 @@ namespace VsNu
         {
             var issues = new List<NugetIssue>();
 
-            foreach (var nugetProjectRef in NugetProjectRefs)
+            foreach (var nugetProjectRef in References)
             {
                 // Find matching package   
-                var package = Packages.SingleOrDefault(p => p.Id == nugetProjectRef.Assembly.Name);
+                var package = Packages.SingleOrDefault(p => p.Id == nugetProjectRef.ProjectAssemblyRef.Name);
 
                 if (package == null)
                 {
-                    issues.Add(new NugetIssue(NugetIssueType.MissingPackageEntry, nugetProjectRef.Assembly, null));
+                    issues.Add(new NugetIssue(NugetIssueType.MissingPackageEntry, nugetProjectRef.ProjectAssemblyRef, null));
                 }
                 else
                 {
-                    if (package.Version != nugetProjectRef.Assembly.Version)
+                    if (package.Version != nugetProjectRef.ProjectAssemblyRef.Version)
                     {
-                        if (nugetProjectRef.Assembly.Version != null)
+                        if (nugetProjectRef.ProjectAssemblyRef.Version != null)
                         {
-                            if (!nugetProjectRef.Assembly.Version.StartsWith(package.Version))
+                            if (!nugetProjectRef.ProjectAssemblyRef.Version.StartsWith(package.Version))
                             {
-                                issues.Add(new NugetIssue(NugetIssueType.VersionMismatch, nugetProjectRef.Assembly,
+                                issues.Add(new NugetIssue(NugetIssueType.VersionMismatch, nugetProjectRef.ProjectAssemblyRef,
                                     package));
                             }
                         }
@@ -86,11 +88,11 @@ namespace VsNu
 
             foreach (var packageElement in packageElements)
             {
-                packageList.Add(new Package(packageElement.Attribute("id")?.Value, 
+                packageList.Add(new Package(packageElement.Attribute("id")?.Value,
                     packageElement.Attribute("version")?.Value));
             }
 
-            project.Packages = packageList;
+            project.Packages.AddRange(packageList);
         }
 
         private static void LoadProjectFile(string path, Project project)
@@ -102,7 +104,7 @@ namespace VsNu
 
                 project.Name = doc.Root?.Element(ns + "PropertyGroup")?.Element(ns + "AssemblyName")?.Value;
 
-                AddNugetProjectRefs(project, doc);
+                AddReferences(project, doc);
             }
             catch (Exception e)
             {
@@ -110,24 +112,21 @@ namespace VsNu
             }
         }
 
-        public static void AddNugetProjectRefs(Project project, XDocument doc)
+        private static void AddReferences(Project project, XDocument doc)
         {
-            var refs = new List<ProjectRef>();
+            var refs = new List<Reference>();
             var ns = doc.Root.Name.Namespace;
 
-            var refIndicator = doc.Descendants(ns + "Private");
+            var refIndicator = doc.Descendants(ns + "HintPath");
 
             foreach (var element in refIndicator)
             {
-                if (element.Value == "True")
-                {
-                    var reference = element.Parent;
-                    var nugetRef = ProjectRef.Create(ns, reference, project);
-                    refs.Add(nugetRef);
-                }
+                var reference = element.Parent;
+                var nugetRef = Reference.Create(ns, reference, project);
+                refs.Add(nugetRef);
             }
 
-            project.NugetProjectRefs = refs;
+            project.References.AddRange(refs);
         }
     }
 }

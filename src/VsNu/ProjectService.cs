@@ -26,13 +26,13 @@ namespace VsNu
             foreach (var projectPath in allPaths)
             {
                 var project = Project.Create(projectPath);
-                if (project.NugetProjectRefs.Count > 0)
+                if (project.References.Count > 0)
                 {
                     projects.Add(project);
                 }
             }
 
             return projects;
-        } 
+        }
     }
 }

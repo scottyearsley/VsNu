@@ -12,9 +12,18 @@ namespace VsNu
 
         public IList<Project> Projects { get; }
 
-        public string[] GetUniqueAssemblyRefNames()
+        public IList<string> GetUniqueAssemblyRefNames()
         {
-            return Projects.SelectMany(p => p.NugetProjectRefs.Select(r => r.Assembly.Name)).Distinct().OrderBy(n => n).ToArray();
+            return Projects.SelectMany(p => p.References.Select(r => r.ProjectAssemblyRef.Name)).Distinct().OrderBy(n => n).ToList();
+        }
+
+        public IList<Project> GetProjectsForPackage(string packageName)
+        {
+            return
+                Projects.SelectMany(p => p.References.Where(r => r.ProjectAssemblyRef.Name == packageName))
+                    .Select(r => r.Project)
+                    .OrderBy(p => p.Name)
+                    .ToList();
         }
 
         public NugetIssue[] GetIssues()

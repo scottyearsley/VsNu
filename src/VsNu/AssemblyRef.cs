@@ -1,16 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace VsNu
+﻿namespace VsNu
 {
     public class AssemblyRef
     {
-        public string Name { get; set; }
+        public string Name { get; private set; }
 
-        public string Version { get; set; }
+        public string Version { get; private set; }
+
+        public string Path { get; private set; }
+
+        public static AssemblyRef Create(string name, string version, string path)
+        {
+            return new AssemblyRef
+            {
+                Name = name,
+                Version = version,
+                Path = path
+            };
+        }
 
         public static AssemblyRef Create(string name)
         {
