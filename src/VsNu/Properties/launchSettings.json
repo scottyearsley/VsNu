@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "VsNu": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Dev\\Contensis Trunk\""
+    }
+  }
+}

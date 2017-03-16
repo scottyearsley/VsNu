@@ -1,0 +1,19 @@
+﻿@using VsNu
+@{
+
+
+
+}
+
+<html>
+
+<body>
+<p>Woohoo</p>
+    <ul>
+        @foreach (string assembly in @Model.GetUniqueAssemblyRefNames())
+        {
+            <li>@assembly</li>
+        }
+    </ul>
+</body>
+</html>
