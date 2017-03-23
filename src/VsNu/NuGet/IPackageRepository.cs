@@ -4,6 +4,6 @@ namespace VsNu.NuGet
 {
     public interface IPackageRepository
     {
-        IPackage GetPackage(string packageId, string version);
+        NuGetPackage GetPackage(string packageId, string version);
     }
 }

@@ -38,6 +38,7 @@ namespace VsNu
             return Projects
                 .SelectMany(p => p.References.Where(r => r.ProjectAssemblyRef.Name == packageName))
                 .Select(r => r.Project)
+                .Distinct()
                 .OrderBy(p => p.Name)
                 .ToList();
         }

@@ -9,10 +9,12 @@ namespace VsNu
     public class Project
     {
         private readonly IPackageFactory _packageFactory;
+        private readonly IReferenceFactory _referenceFactory;
 
-        public Project(string path, IPackageFactory packageFactory)
+        public Project(string path, IPackageFactory packageFactory, IReferenceFactory referenceFactory)
         {
             _packageFactory = packageFactory;
+            _referenceFactory = referenceFactory;
 
             ProjectPath = path;
 
@@ -20,7 +22,6 @@ namespace VsNu
 
             LoadPackagesFile(path);
         }
-
 
         public string Name { get; private set; }
 
@@ -30,14 +31,10 @@ namespace VsNu
 
         public List<Package> Packages { get; } = new List<Package>();
 
-        //public bool ReferencesMatch
-        //{
-        //    get { return true; }
-        //}
-
         public Reference GetReference(string assembly)
         {
-            return References.Single(r => r.ProjectAssemblyRef.Name == assembly);
+            // TODO: If there is more than one then what to do?
+            return References.FirstOrDefault(r => r.ProjectAssemblyRef.Name == assembly);
         }
 
         public List<NugetIssue> GetNugetIssues()
@@ -47,7 +44,7 @@ namespace VsNu
             foreach (var nugetProjectRef in References)
             {
                 // Find matching package   
-                var package = Packages.SingleOrDefault(p => p.Id == nugetProjectRef.ProjectAssemblyRef.Name);
+                var package = Packages.FirstOrDefault(p => p.Id == nugetProjectRef.ProjectAssemblyRef.Name);
 
                 if (package == null)
                 {
@@ -108,29 +105,12 @@ namespace VsNu
 
                 Name = doc.Root?.Element(ns + "PropertyGroup")?.Element(ns + "AssemblyName")?.Value;
 
-                AddReferences(doc);
+                References.AddRange(_referenceFactory.CreateReferences(doc, this));
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
             }
-        }
-
-        private void AddReferences(XDocument doc)
-        {
-            var refs = new List<Reference>();
-            var ns = doc.Root.Name.Namespace;
-
-            var refIndicator = doc.Descendants(ns + "HintPath");
-
-            foreach (var element in refIndicator)
-            {
-                var reference = element.Parent;
-                var nugetRef = Reference.Create(ns, reference, this);
-                refs.Add(nugetRef);
-            }
-
-            References.AddRange(refs);
         }
     }
 }

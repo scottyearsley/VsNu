@@ -1,10 +1,20 @@
 ﻿namespace VsNu
 {
     /// <summary>
-    /// 
+    /// A reference within a project to an Assembly.
     /// </summary>
     public class AssemblyRef
     {
+        private AssemblyRef()
+        { }
+
+        public AssemblyRef(string name, string version, string path)
+        {
+            Name = name;
+            Version = version;
+            Path = path;
+        }
+
         /// <summary>
         /// The name of the assembly.
         /// </summary>
@@ -20,17 +30,7 @@
         /// </summary>
         public string Path { get; private set; }
 
-        public static AssemblyRef Create(string name, string version, string path)
-        {
-            return new AssemblyRef
-            {
-                Name = name,
-                Version = version,
-                Path = path
-            };
-        }
-
-        public static AssemblyRef Create(string name)
+        public static AssemblyRef CreateFromAssemblyFullname(string name)
         {
             var assembyRef = new AssemblyRef();
             var split = name.Split(',');

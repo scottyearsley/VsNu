@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
-using NuGet;
 
 namespace VsNu.NuGet
 {
@@ -13,7 +12,7 @@ namespace VsNu.NuGet
     public class FilePackageCache : IPackageCache
     {
         private static readonly string CacheFile;
-        private List<DataServicePackage> _packages;
+        private List<NuGetPackage> _packages;
 
         private static JsonSerializerSettings _serializationSettings =
             new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto };
@@ -38,7 +37,7 @@ namespace VsNu.NuGet
         /// <param name="packageId">The package name</param>
         /// <param name="version">The package version</param>
         /// <returns>IPackage instance</returns>
-        public IPackage Get(string packageId, string version)
+        public NuGetPackage Get(string packageId, string version)
         {
             return Packages.FirstOrDefault(p => p.Id.Equals(packageId, StringComparison.OrdinalIgnoreCase) && p.Version.ToString() == version);
         }
@@ -47,16 +46,17 @@ namespace VsNu.NuGet
         /// Adds a package to the local cache.
         /// </summary>
         /// <param name="package">The package</param>
-        public void Insert(IPackage package)
+        public void Insert(NuGetPackage package)
         {
             if (Get(package.Id, package.Version.ToString()) == null)
             {
-                Packages.Add(package as DataServicePackage);
-                File.WriteAllText(CacheFile, JsonConvert.SerializeObject(Packages, _serializationSettings));
+                Packages.Add(package);
+                var content = JsonConvert.SerializeObject(Packages, _serializationSettings);
+                File.WriteAllText(CacheFile, content);
             }
         }
 
-        private List<DataServicePackage> Packages
+        private List<NuGetPackage> Packages
         {
             get
             {
@@ -65,11 +65,11 @@ namespace VsNu.NuGet
                     if (File.Exists(CacheFile))
                     {
                         var fileContents = File.ReadAllText(CacheFile);
-                        _packages = JsonConvert.DeserializeObject<List<DataServicePackage>>(fileContents, _serializationSettings);
+                        _packages = JsonConvert.DeserializeObject<List<NuGetPackage>>(fileContents, _serializationSettings);
                     }
                     else
                     {
-                        _packages = new List<DataServicePackage>();
+                        _packages = new List<NuGetPackage>();
                     }
                 }
                 return _packages;

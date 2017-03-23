@@ -2,7 +2,6 @@
 @using System.Collections.Generic
 @using System.Linq
 @using VsNu
-@using NuGet
 
 @{
     var assemblies = @Model.GetUniqueAssemblyRefNames();
@@ -15,10 +14,9 @@
     <title>Visual Studio Nuget Analysis Result</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.8/semantic.min.css">
     <style>
-        .vertical-text {
-            transform: rotate(270deg);
-            height: 200px;
-            width: 100px;
+        body {
+            overflow: auto;
+            width: 100%;
         }
 
         table {
@@ -26,15 +24,16 @@
             border: 1px solid #000000;
         }
 
-            table td, th {
-                border: 1px solid #000000;
-                padding: 10px;
-            }
+        table td, th {
+            border: 1px solid #000000;
+            padding: 10px;
+        }
 
         th {
-            background-color: #eeeeee;
-            height: 301px;
-            width: 200px;
+            background-color: #333333;
+            color: #ffffff;
+            /*height: 301px;*/
+            min-width: 100px;
         }
 
         td {
@@ -51,24 +50,27 @@
             -moz-hyphens: auto;
             -webkit-hyphens: auto;
             hyphens: auto;
-            width: 300px;
+            min-width: 200px;
+            max-width: 200px;
         }
 
         table th:first-child {
             border-top-color: #ffffff;
             border-left-color: #ffffff;
-            width: 100px;
+            min-width: 200px;
+            max-width: 200px;
             background-color: #ffffff;
         }
 
         table td:first-child {
-            width: 100px;
-            background-color: #eeeeee;
+            min-width: 100px;
+            max-width: 100px;
+            background-color: #999;
         }
 
         .container {
             margin: 20px;
-            overflow: auto;
+            width:100%;
         }
 
         .error {
@@ -78,11 +80,23 @@
 </head>
 <body>
 
+    <h1>VsNu Results - @DateTime.Now.ToString("f")</h1>
+
+    @*<div class="container">*@
+        <ul>
+            @foreach (var assembly in assemblies)
+            {
+                <li><a href="#@assembly">@assembly</a></li>
+            }
+        </ul>
+    @*</div>*@
+
     <div class="container">
         <h2>Results</h2>
 
         @foreach (string assembly in assemblies)
-            {
+        {
+            <a id="@assembly"></a>
             <h3>@assembly</h3>
             <table>
                 <tr>
@@ -136,7 +150,7 @@
                     <td>Package Config</td>
                     @foreach (Project project in @Model.GetProjectsForPackage(assembly))
                     {
-                        var contains = project.Packages.SingleOrDefault(p => p.Contains(assembly));
+                        var contains = project.Packages.FirstOrDefault(p => p.Contains(assembly));
 
                         if (contains != null)
                         {
@@ -144,7 +158,7 @@
                         }
                         else
                         {
-                            <td>Null</td>
+                            <td class="error">Null</td>
                         }
 
                         @*var packageRef = project.Packages.SingleOrDefault(p => p.GetPackageAssemblyReference(assembly));

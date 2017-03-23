@@ -2,7 +2,7 @@
   "profiles": {
     "VsNu": {
       "commandName": "Project",
-      "commandLineArgs": "\"..\\..\\tests\\Solution\" \"c:\\temp\\report.html\""
+      "commandLineArgs": "\"C:\\Dev\\Contensis Trunk\" \"c:\\temp\\report.html\" \"*contensis*, *cms*, *zengenti*, *bespoke*, harcourt*\""
     }
   }
 }

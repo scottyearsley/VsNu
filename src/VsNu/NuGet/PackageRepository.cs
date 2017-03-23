@@ -6,7 +6,7 @@ namespace VsNu.NuGet
     {
         static IPackageCache _cache = new FilePackageCache();
 
-        public IPackage GetPackage(string packageId, string version)
+        public NuGetPackage GetPackage(string packageId, string version)
         {
             var cached = _cache.Get(packageId, version);
             if (cached != null)
@@ -15,14 +15,16 @@ namespace VsNu.NuGet
             }
 
             var repository = PackageRepositoryFactory.Default.CreateRepository("https://packages.nuget.org/api/v2");
-            var package = repository.FindPackage(packageId, new SemanticVersion(version));
+            var packageDefinition = repository.FindPackage(packageId, new SemanticVersion(version));
 
-            if (package != null)
+            if (packageDefinition != null)
             {
+                var package = new NuGetPackage(packageDefinition);
                 _cache.Insert(package);
+                return package;
             }
 
-            return package;
+            return null;
         }
     }
 }
