@@ -4,9 +4,9 @@ using VsNu.Resources;
 
 namespace VsNu.Reports
 {
-    internal class ReportService
+    internal class RazorEngineReportService: IReportService
     {
-        public string CreateReport(NugetAnalysisResult analysisDataResult)
+        public string Create(NugetAnalysisResult analysisDataResult)
         {
             try
             {

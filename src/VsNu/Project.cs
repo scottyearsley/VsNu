@@ -8,6 +8,20 @@ namespace VsNu
 {
     public class Project
     {
+        private readonly IPackageFactory _packageFactory;
+
+        public Project(string path, IPackageFactory packageFactory)
+        {
+            _packageFactory = packageFactory;
+
+            ProjectPath = path;
+
+            LoadProjectFile(path);
+
+            LoadPackagesFile(path);
+        }
+
+
         public string Name { get; private set; }
 
         public string ProjectPath { get; private set; }
@@ -21,18 +35,9 @@ namespace VsNu
         //    get { return true; }
         //}
 
-        public static Project Create(string path)
+        public Reference GetReference(string assembly)
         {
-            var project = new Project
-            {
-                ProjectPath = path
-            };
-
-            LoadProjectFile(path, project);
-
-            LoadPackagesFile(path, project);
-
-            return project;
+            return References.Single(r => r.ProjectAssemblyRef.Name == assembly);
         }
 
         public List<NugetIssue> GetNugetIssues()
@@ -67,7 +72,7 @@ namespace VsNu
             return issues;
         }
 
-        private static void LoadPackagesFile(string path, Project project)
+        private void LoadPackagesFile(string path)
         {
             var directoryPath = Path.GetDirectoryName(path);
             var packagesPath = Path.Combine(directoryPath, "packages.config");
@@ -75,11 +80,11 @@ namespace VsNu
             if (File.Exists(packagesPath))
             {
                 var doc = XDocument.Load(packagesPath);
-                AddPackageItems(doc, project);
+                AddPackageItems(doc);
             }
         }
 
-        private static void AddPackageItems(XDocument doc, Project project)
+        private void AddPackageItems(XDocument doc)
         {
             var ns = doc.Root.Name.Namespace;
             var packageElements = doc.Root.Elements(ns + "package");
@@ -88,23 +93,22 @@ namespace VsNu
 
             foreach (var packageElement in packageElements)
             {
-                packageList.Add(new Package(packageElement.Attribute("id")?.Value,
-                    packageElement.Attribute("version")?.Value));
+                packageList.Add(_packageFactory.Create(packageElement));
             }
 
-            project.Packages.AddRange(packageList);
+            Packages.AddRange(packageList);
         }
 
-        private static void LoadProjectFile(string path, Project project)
+        private void LoadProjectFile(string path)
         {
             try
             {
                 var doc = XDocument.Load(path);
                 var ns = doc.Root.Name.Namespace;
 
-                project.Name = doc.Root?.Element(ns + "PropertyGroup")?.Element(ns + "AssemblyName")?.Value;
+                Name = doc.Root?.Element(ns + "PropertyGroup")?.Element(ns + "AssemblyName")?.Value;
 
-                AddReferences(project, doc);
+                AddReferences(doc);
             }
             catch (Exception e)
             {
@@ -112,7 +116,7 @@ namespace VsNu
             }
         }
 
-        private static void AddReferences(Project project, XDocument doc)
+        private void AddReferences(XDocument doc)
         {
             var refs = new List<Reference>();
             var ns = doc.Root.Name.Namespace;
@@ -122,11 +126,11 @@ namespace VsNu
             foreach (var element in refIndicator)
             {
                 var reference = element.Parent;
-                var nugetRef = Reference.Create(ns, reference, project);
+                var nugetRef = Reference.Create(ns, reference, this);
                 refs.Add(nugetRef);
             }
 
-            project.References.AddRange(refs);
+            References.AddRange(refs);
         }
     }
 }

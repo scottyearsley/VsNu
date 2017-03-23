@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Xml.Linq;
+using VsNu.Helpers;
 
 namespace VsNu
 {
@@ -13,7 +14,7 @@ namespace VsNu
 
         public Project Project { get; private set; }
 
-        public bool IsNugetPackageRef => HintPath.Contains("Packages");
+        public bool IsNugetPackageRef => HintPath.Contains("packages");
 
         public bool VersionMismatch => ProjectAssemblyRef.Version != AssemblyInfo.Version;
 

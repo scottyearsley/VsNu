@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using NuGet;
 
@@ -8,9 +7,11 @@ namespace VsNu
     public class Package
     {
         private static IDictionary<string, IPackage> _packages = new Dictionary<string, IPackage>();
+        private readonly VsNu.NuGet.IPackageRepository _packageRepository;
 
-        public Package(string id, string version)
+        public Package(VsNu.NuGet.IPackageRepository packageRepository, string id, string version)
         {
+            _packageRepository = packageRepository;
             Id = id;
             Version = version;
         }
@@ -25,9 +26,10 @@ namespace VsNu
             return contains;
         }
 
-        public IPackageAssemblyReference GetPackageAssemblyReference(string assembly)
+        public IPackageAssemblyReference[] GetPackageAssemblyReference(string assembly)
         {
-            return GetPackageInfo().AssemblyReferences.SingleOrDefault(p => p.Name.Replace(".dll", "") == assembly);
+            var assemblyRefs = GetPackageInfo().AssemblyReferences;
+            return assemblyRefs.Where(p => p.Name.Replace(".dll", "") == assembly).ToArray();
         }
 
         public IPackage GetPackageInfo()
@@ -37,7 +39,7 @@ namespace VsNu
                 return _packages[Id];
             }
 
-            var package = new PackageRepository().GetPackage(Id);
+            var package = _packageRepository.GetPackage(Id, Version);
             _packages.Add(Id, package);
 
             return package;

@@ -5,10 +5,12 @@ namespace VsNu
 {
     class ProjectService
     {
+        private readonly IPackageFactory _packageFactory;
         private readonly string _rootPath;
 
-        public ProjectService(string rootPath)
+        public ProjectService(IPackageFactory packageFactory, string rootPath)
         {
+            _packageFactory = packageFactory;
             _rootPath = rootPath;
         }
 
@@ -25,7 +27,7 @@ namespace VsNu
 
             foreach (var projectPath in allPaths)
             {
-                var project = Project.Create(projectPath);
+                var project = new Project(projectPath, _packageFactory);
                 if (project.References.Count > 0)
                 {
                     projects.Add(project);

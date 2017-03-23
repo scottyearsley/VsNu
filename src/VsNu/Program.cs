@@ -1,4 +1,4 @@
-﻿using System.IO;
+﻿using System;
 using VsNu.Reports;
 
 namespace VsNu
@@ -7,16 +7,19 @@ namespace VsNu
     {
         static void Main(string[] args)
         {
-            var analyzer = new NugetAnalyzer();
-            var result = analyzer.Analyze(args[0]);
+            if (args.Length != 2)
+            {
+                throw new ArgumentException("args", "Please provide a root directory and output file path");
+            }
 
-            var issues = result.GetIssues();
+            var engine = new VsNuEngine(
+                new RazorEngineReportService(), 
+                new PackageFactory(
+                    new NuGet.PackageRepository()
+                )
+            );
 
-            var report = new ReportService().CreateReport(result);
-
-            //var packages = result.GetUniqueAssemblyRefNames();
-
-            File.WriteAllText("C:\\temp\\report.html", report);
+            engine.Execute(args[0], args[1]);
         }
     }
 }

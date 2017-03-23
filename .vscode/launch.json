@@ -6,7 +6,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceRoot}\\src\\VsNu\\bin\\Debug\\netcoreapp1.1\\VsNu.dll",
+            "program": "${workspaceRoot}\\src\\VsNu\\bin\\Debug\\net461\\win7-x64\\VsNu.exe",
             "args": ["C:\\Dev\\Contensis Trunk"],
             "cwd": "${workspaceRoot}\\src\\VsNu",
             "console": "internalConsole",
